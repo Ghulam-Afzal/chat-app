@@ -1,12 +1,35 @@
 const express = require('express')
+const cors = require('cors')
 const app = express()
 const server = require('http').createServer(app)
-const io = require('socket.io')(server)
+const io = require('socket.io')(server, {
+  cors:{
+    origin: '*'
+  }
+})
+
+// server a basic webpage for now  
+app.use('/', (req, res) => {
+  res.send("Temp")
+})
 
 
-// basic route 
-app.use("/", (req, res) =>{
-  res.send("PAGE")
+app.use(cors({
+  origin: '*'
+}))
+
+// wait for connection requests over the socket 
+io.on('connection', (socket) => {
+  console.log(`A new peer has connected on socket ${socket}`)
+
+  socket.on('disconnect', (socket) => {
+    console.log('A user has disconnected')
+  })
+
+  socket.on('message-send', (message) => {
+    console.log(message)
+  })
+
 })
 
 // define port number and have server listen on it
@@ -15,7 +38,3 @@ server.listen(PORT, () =>{
   console.log(`Server is Running on PORT ${PORT}`)
 })
 
-// wait for connection requests over the socket 
-io.on('connection', (socket) => {
-  console.log("A new peer has connected")
-})
