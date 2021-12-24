@@ -9,6 +9,7 @@ const io = require('socket.io')(server, {
   }
 })
 
+const middleware = require("./middleware/middleware");
 const db = require('./models')
 const messageRouter = require('./controllers/message.controller')
 const groupRouter = require('./controllers/group.controller')
@@ -18,26 +19,21 @@ db.sequelize.sync({force: true}).then(()=> {
   console.log('Drop and resync Table')
 })
 
-
-
-// parse requests of content-type - application/json
-app.use(bodyParser.json());
-
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(cors({
   origin: '*'
 }))
-
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(middleware.requestLogger);
 
 app.use("/api/messages", messageRouter)
 app.use("/api/groups", groupRouter)
-
-// server a basic webpage for now  
 app.use('/', (req, res) => {
   res.json( {message: 'Welcome to the chat app.'})
 })
+
+app.use(middleware.unknownEndpoint);
+app.use(middleware.errorHandler);
 
 // wait for connection requests over the socket 
 io.on('connection', (socket) => {
