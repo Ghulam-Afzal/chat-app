@@ -27,7 +27,7 @@ groupRouter.get("/getChannels", async (req, res) => {
 groupRouter.post("/createGroup", async (req, res) => {
     // info for creating the group such as owner and group name should be in the req.body
     const owner = req.body.owner
-    const groupName = req.body.owner
+    const groupName = req.body.groupName
 
     const createdGpoup = await GROUP.build({
         name: groupName, 
@@ -43,32 +43,38 @@ groupRouter.post("/createGroup", async (req, res) => {
 
 // user join 
 groupRouter.put("/joinGroup", async (req, res) => {
-    // get user from req.body 
+    // get user and group id from req.body 
     const user = req.body.user
     const Id = req.body.id
 
-    // remove user from and reduce count of members that are in the group
-    await GROUP.update(
-        { numMembers: sequelize.literal('numMembers + 1')}, 
-        { where: {groupId: Id} } 
-    )
+    // add user to and increase count of members that are in the group
+    const group = await GROUP.findOne({
+        where: {
+            groupId: Id
+        }
+    })
+    await group.increment('numMembers')
+    await group.reload()
 
-    res.status(204).end()
+    res.json(group)
 })
 
 // user leave
 groupRouter.put("/leaveGroup", async (req, res) => {
-    // get user from req.body 
+    // get user and group idfrom req.body 
     const user = req.body.user
     const Id = req.body.id
 
     // remove user from and reduce count of members that are in the group
-    await GROUP.update(
-        { numMembers: sequelize.literal('numMembers - 1')}, 
-        { where: {groupId: Id} } 
-    )
+    const group = await GROUP.findOne({
+        where: {
+            groupId: Id
+        }
+    })
+    await group.decrement('numMembers')
+    await group.reload()
 
-    res.status(204).end()
+    res.json(group)
 })
 
 // deletion of a group 
