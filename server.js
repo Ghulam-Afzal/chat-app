@@ -9,29 +9,20 @@ const io = require('socket.io')(server, {
 })
 
 const db = require('./models')
+const messageRouter = require('./controllers/message.controller')
 const MESSAGE = db.message
 
 db.sequelize.sync({force: true}).then(()=> {
   console.log('Drop and resync Table')
-  initial()
 })
 
 
-// add a test message to test inser and reterival from the db
-function initial() {
-  MESSAGE.create({
-    userId: "DJSFLK78sDFF8", 
-    message: 'this is test message', 
-    groupID: "JH6786SDFKJ"
-  })
-}
-
+app.use("/api/messages", messageRouter)
 
 // server a basic webpage for now  
 app.use('/', (req, res) => {
   res.json( {message: 'Welcome to the chat app.'})
 })
-
 
 app.use(cors({
   origin: '*'
@@ -47,6 +38,11 @@ io.on('connection', (socket) => {
 
   socket.on('message-send', (message) => {
     console.log(message)
+    MESSAGE.create({
+      user: message.author, 
+      message: message.msg, 
+      groupID: message.groupId
+    })
   })
 
 })
