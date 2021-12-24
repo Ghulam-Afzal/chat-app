@@ -1,6 +1,6 @@
 const messageFunction = (sequelize, Sequelize) => {
     const Message = sequelize.define("message", {
-        userId: {
+        user: {
             type: Sequelize.STRING, 
             allowNull: false
         }, 
