@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const bodyParser = require('body-parser')
 const app = express()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {
@@ -10,6 +11,7 @@ const io = require('socket.io')(server, {
 
 const db = require('./models')
 const messageRouter = require('./controllers/message.controller')
+const groupRouter = require('./controllers/group.controller')
 const MESSAGE = db.message
 
 db.sequelize.sync({force: true}).then(()=> {
@@ -17,16 +19,25 @@ db.sequelize.sync({force: true}).then(()=> {
 })
 
 
+
+// parse requests of content-type - application/json
+app.use(bodyParser.json());
+
+// parse requests of content-type - application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(cors({
+  origin: '*'
+}))
+
+
 app.use("/api/messages", messageRouter)
+app.use("/api/groups", groupRouter)
 
 // server a basic webpage for now  
 app.use('/', (req, res) => {
   res.json( {message: 'Welcome to the chat app.'})
 })
-
-app.use(cors({
-  origin: '*'
-}))
 
 // wait for connection requests over the socket 
 io.on('connection', (socket) => {
