@@ -7,9 +7,9 @@ const GROUP = db.group
 // routes for creating, joining, leaving and deleting a group
 
 // get req to retrieve the channels that the user is apart of 
-groupRouter.get("/getChannels", async (req, res) => {
+groupRouter.get("/getGroups", async (req, res) => {
     /*
-        this function should only return the groups that the user is aport of 
+        this function should only return the groups that the user is apart of
         but as there is no way to tell which one the user belongs to as of yet
         all the channels that are available will be returned
     */  
@@ -78,6 +78,27 @@ groupRouter.put("/leaveGroup", async (req, res) => {
 })
 
 // deletion of a group 
+groupRouter.delete("/deleteGroup", async (req, res) => {
+    const ownerOfGroup = req.body.owner
+    const groupid = req.body.groupId
+    
+    const group = await GROUP.findOne({
+        where: {
+            groupId: groupid
+        }
+    }) 
 
+    if (group.owner !== ownerOfGroup){
+        res.status(401).json({ error: "You do not own the group."}).end()
+    }else {
+        await GROUP.destroy({
+            where: {
+                groupId: groupid
+            }
+        })
+    
+        res.json({ sucess: "the group was destroyed"})
+    }
+})
 
 module.exports = groupRouter
