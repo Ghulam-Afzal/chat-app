@@ -8,9 +8,28 @@ const io = require('socket.io')(server, {
   }
 })
 
+const db = require('./models')
+const MESSAGE = db.message
+
+db.sequelize.sync({force: true}).then(()=> {
+  console.log('Drop and resync Table')
+  initial()
+})
+
+
+// add a test message to test inser and reterival from the db
+function initial() {
+  MESSAGE.create({
+    userId: "DJSFLK78sDFF8", 
+    message: 'this is test message', 
+    groupID: "JH6786SDFKJ"
+  })
+}
+
+
 // server a basic webpage for now  
 app.use('/', (req, res) => {
-  res.send("Temp")
+  res.json( {message: 'Welcome to the chat app.'})
 })
 
 
