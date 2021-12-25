@@ -13,6 +13,7 @@ const middleware = require("./middleware/middleware");
 const db = require('./models')
 const messageRouter = require('./controllers/message.controller')
 const groupRouter = require('./controllers/group.controller')
+const userRouter = require("./controllers/auth.contoller")
 const MESSAGE = db.message
 
 db.sequelize.sync({force: true}).then(()=> {
@@ -28,6 +29,7 @@ app.use(middleware.requestLogger);
 
 app.use("/api/messages", messageRouter)
 app.use("/api/groups", groupRouter)
+app.use("/api/auth", userRouter)
 app.use('/', (req, res) => {
   res.json( {message: 'Welcome to the chat app.'})
 })
