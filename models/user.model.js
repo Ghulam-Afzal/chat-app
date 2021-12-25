@@ -7,8 +7,9 @@ const userModel = (sequelize, Sequelize) => {
         passwordHash: {
             type: Sequelize.STRING, 
             allowNull: false
-        }
+        },
     })
+
     return User 
 }
 
