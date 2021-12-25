@@ -27,10 +27,23 @@ groupRouter.post("/createGroup", async (req, res) => {
     // info for creating the group such as owner and group name should be in the req.body
     const owner = req.body.owner
     const groupName = req.body.groupName
+    let groupID = uuidv4()
 
+    // check if a group with this id already exists 
+    const checkIfIDExists = await GROUP.findOne({
+        where: {
+            groupId: groupID
+        }
+    })
+    // if it does than make a new id 
+    if (checkIfIDExists){
+        groupID = uuidv4()
+    }
+
+    // create the group 
     const createdGpoup = await GROUP.build({
         name: groupName, 
-        groupId: uuidv4(), 
+        groupId: groupID, 
         numMembers: 1, 
         owner: owner
     })
@@ -52,6 +65,11 @@ groupRouter.put("/joinGroup", async (req, res) => {
             groupId: Id
         }
     })
+
+    if (!group) {
+        return res.status(404).json({ error: "That server does not exist "})
+    }
+
     await group.increment('numMembers')
     await group.reload()
 
@@ -70,6 +88,11 @@ groupRouter.put("/leaveGroup", async (req, res) => {
             groupId: Id
         }
     })
+
+    if (!group) {
+        return res.status(404).json({ error: "That server does not exist "})
+    }
+
     await group.decrement('numMembers')
     await group.reload()
 
