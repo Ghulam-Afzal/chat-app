@@ -1,6 +1,5 @@
 const groupRouter = require('express').Router() 
 const { v4: uuidv4 } = require('uuid');
-const { sequelize } = require('../models');
 const db = require('../models')
 const GROUP = db.group
 
