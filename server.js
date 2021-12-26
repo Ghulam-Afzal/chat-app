@@ -16,7 +16,7 @@ const groupRouter = require('./controllers/group.controller')
 const userRouter = require("./controllers/auth.contoller")
 const MESSAGE = db.message
 
-db.sequelize.sync({force: true}).then(()=> {
+db.sequelize.sync().then(()=> {
   console.log('Drop and resync Table')
 })
 
@@ -48,9 +48,9 @@ io.on('connection', (socket) => {
   socket.on('message-send', (message) => {
     console.log(message)
     MESSAGE.create({
-      user: message.author, 
+      userId: message.authorId, 
       message: message.msg, 
-      groupID: message.groupId
+      groupId: message.groupId
     })
   })
 
