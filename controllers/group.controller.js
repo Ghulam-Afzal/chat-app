@@ -15,9 +15,9 @@ groupRouter.get("/getGroups", async (req, res) => {
 
     // obtain groups where id = group id and return them 
     const groups = await GROUP.findAll({
-        where: {
-            groupId: Id
-        }, 
+        // where: {
+        //     groupId: Id
+        // }, 
         include : [
             {
                 model: db.user, 
@@ -151,17 +151,29 @@ groupRouter.delete("/deleteGroup", async (req, res) => {
         }
     }) 
 
-    if (group.owner !== ownerOfGroup){
-        res.status(401).json({ error: "You do not own the group."}).end()
-    }else {
-        await GROUP.destroy({
-            where: {
-                groupId: groupid
-            }
-        })
-    
-        res.json({ sucess: "the group was destroyed"})
+    if (!group) {
+        return res.status(404).json({ error: "Group does not exist." })
     }
+    const temp = await group.getUsers({
+        attributes: ["id", "username"]
+    })
+
+    if (group.owner !== ownerOfGroup){
+        return res.status(401).json({ error: "You do not own the group."}).end()
+    }
+
+    // loop through all the users in the group and remove them 
+    for (let i = 0; i < temp.length; i++){
+        await group.removeUser(i.id)
+    }
+
+    await GROUP.destroy({
+        where: {
+            groupId: groupid
+        }
+    })
+
+    res.status(204).json({ success: "the group was destroyed"})
 })
 
 module.exports = groupRouter
