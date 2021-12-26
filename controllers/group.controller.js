@@ -1,4 +1,6 @@
 const groupRouter = require('express').Router() 
+const { hash } = require('bcryptjs');
+const { CommandCompleteMessage } = require('pg-protocol/dist/messages');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../models')
 const GROUP = db.group
@@ -7,16 +9,22 @@ const GROUP = db.group
 
 // get req to retrieve the channels that the user is apart of 
 groupRouter.get("/getGroups", async (req, res) => {
-    /*
-        this function should only return the groups that the user is apart of
-        but as there is no way to tell which one the user belongs to as of yet
-        all the channels that are available will be returned
-    */  
 
     // get info needed from req.body 
-    const user = req.body.user
+    const Id = req.body.groupId
 
-    const groups = await GROUP.findAll({})
+    // obtain groups where id = group id and return them 
+    const groups = await GROUP.findAll({
+        where: {
+            groupId: Id
+        }, 
+        include : [
+            {
+                model: db.user, 
+                attributes: [ "id", "username" ]
+            }
+        ]
+    })
 
     res.json(groups)
 })
@@ -24,9 +32,12 @@ groupRouter.get("/getGroups", async (req, res) => {
 
 // post route forcreating the group and assinging a owner 
 groupRouter.post("/createGroup", async (req, res) => {
+
     // info for creating the group such as owner and group name should be in the req.body
     const owner = req.body.owner
     const groupName = req.body.groupName
+    const userId = req.body.userId
+
     let groupID = uuidv4()
 
     // check if a group with this id already exists 
@@ -41,22 +52,25 @@ groupRouter.post("/createGroup", async (req, res) => {
     }
 
     // create the group 
-    const createdGpoup = await GROUP.build({
+    const createdGroup = await GROUP.build({
         name: groupName, 
         groupId: groupID, 
         numMembers: 1, 
         owner: owner
     })
-    await createdGpoup.save()
 
-    res.json(createdGpoup)
+    await createdGroup.save()
+    await createdGroup.addUser(userId)
+
+    res.json(createdGroup)
 
 })
 
 // user join 
 groupRouter.put("/joinGroup", async (req, res) => {
+
     // get user and group id from req.body 
-    const user = req.body.user
+    const userId = req.body.userId
     const Id = req.body.id
 
     // add user to and increase count of members that are in the group
@@ -66,11 +80,24 @@ groupRouter.put("/joinGroup", async (req, res) => {
         }
     })
 
+    // if group does not exist return error 
     if (!group) {
         return res.status(404).json({ error: "That server does not exist "})
     }
 
+    /* 
+        check if the member is in the group already 
+        if they are return error else add them to 
+        the group   
+    */
+    const isUserAlreadyInGroup = await group.hasUser(userId)
+
+    if (isUserAlreadyInGroup) {
+        return res.status(400).json({ error: "User is already in this Group."})
+    }
+
     await group.increment('numMembers')
+    await group.addUser(userId)
     await group.reload()
 
     res.json(group)
@@ -78,8 +105,9 @@ groupRouter.put("/joinGroup", async (req, res) => {
 
 // user leave
 groupRouter.put("/leaveGroup", async (req, res) => {
+
     // get user and group idfrom req.body 
-    const user = req.body.user
+    const userId = req.body.userId
     const Id = req.body.id
 
     // remove user from and reduce count of members that are in the group
@@ -89,11 +117,24 @@ groupRouter.put("/leaveGroup", async (req, res) => {
         }
     })
 
+    // if group does not exist return error 
     if (!group) {
         return res.status(404).json({ error: "That server does not exist "})
     }
 
+      /* 
+        check if the member is not in the group already 
+        if they aren't return error else remove them to 
+        the group   
+    */
+    const isUserAlreadyInGroup = await group.hasUser(userId)
+
+    if (!isUserAlreadyInGroup) {
+        return res.status(400).json({ error: "User is not in this Group."})
+    }
+
     await group.decrement('numMembers')
+    await group.removeUser(userId)
     await group.reload()
 
     res.json(group)
