@@ -1,9 +1,9 @@
 const groupRouter = require('express').Router() 
 const { hash } = require('bcryptjs');
-const { CommandCompleteMessage } = require('pg-protocol/dist/messages');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../models')
 const GROUP = db.group
+const USER = db.user
 
 // routes for creating, joining, leaving and deleting a group
 
@@ -15,9 +15,9 @@ groupRouter.get("/getGroups", async (req, res) => {
 
     // obtain groups where id = group id and return them 
     const groups = await GROUP.findAll({
-        // where: {
-        //     groupId: Id
-        // }, 
+        where: {
+            groupId: Id
+        }, 
         include : [
             {
                 model: db.user, 
@@ -62,6 +62,14 @@ groupRouter.post("/createGroup", async (req, res) => {
     await createdGroup.save()
     await createdGroup.addUser(userId)
 
+    const usr = await USER.findOne({
+        where: {
+            username: owner
+        }
+    })
+
+    await usr.addGroup(createdGroup.id)
+
     res.json(createdGroup)
 
 })
@@ -98,6 +106,16 @@ groupRouter.put("/joinGroup", async (req, res) => {
 
     await group.increment('numMembers')
     await group.addUser(userId)
+
+    const usr = await USER.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    await usr.addGroup(group.id)
+
+
     await group.reload()
 
     res.json(group)
@@ -119,10 +137,10 @@ groupRouter.put("/leaveGroup", async (req, res) => {
 
     // if group does not exist return error 
     if (!group) {
-        return res.status(404).json({ error: "That server does not exist "})
+        return res.status(404).json({ error: "That server does not exist" })
     }
 
-      /* 
+    /* 
         check if the member is not in the group already 
         if they aren't return error else remove them to 
         the group   
@@ -135,6 +153,15 @@ groupRouter.put("/leaveGroup", async (req, res) => {
 
     await group.decrement('numMembers')
     await group.removeUser(userId)
+
+    const usr = await USER.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    await usr.removeGroup(group.id)
+
     await group.reload()
 
     res.json(group)
@@ -159,7 +186,7 @@ groupRouter.delete("/deleteGroup", async (req, res) => {
     })
 
     if (group.owner !== ownerOfGroup){
-        return res.status(401).json({ error: "You do not own the group."}).end()
+        return res.status(401).json({ error: "You do not own the group." }).end()
     }
 
     // loop through all the users in the group and remove them 
@@ -173,7 +200,7 @@ groupRouter.delete("/deleteGroup", async (req, res) => {
         }
     })
 
-    res.status(204).json({ success: "the group was destroyed"})
+    res.status(204).json({ success: "the group was destroyed" })
 })
 
 module.exports = groupRouter
