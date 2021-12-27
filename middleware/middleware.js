@@ -25,6 +25,8 @@ const errorHandler = (error, request, response, next) => {
     });
   } else if (error.name === "TokenExpiredError") {
     return response.status(401).json({ error: "token expired" });
+  } else if (error.name === 'SequelizeDatabaseError'){
+    return response.status(504).json({ error: "something went wrong"})
   }
   next(error);
 };
