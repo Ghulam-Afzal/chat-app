@@ -42,6 +42,9 @@ userRouter.post("/signin", async (req, res) => {
     const user = await USER.findOne({
         where: {
             username: body.username
+        }, 
+        include: {
+            model: db.group
         }
     })
 
@@ -62,7 +65,7 @@ userRouter.post("/signin", async (req, res) => {
     
     const tokenizeUser = jwt.sign(userToTokenize, authConfig.SECRET, {expiresIn: 60 * 60})
     
-    res.status(200).send({tokenizeUser, username:user.username, id: user.id})
+    res.status(200).send({tokenizeUser, username:user.username, id: user.id, groups: user.groups})
 })
 
 
