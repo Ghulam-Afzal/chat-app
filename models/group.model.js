@@ -15,10 +15,6 @@ const groupModel = (sequelize, Sequelize) => {
             type: Sequelize.STRING, 
             allowNull: false
         }
-        /*  potentially need to have a way to store all the 
-            users who are in this group to manage them leaving 
-            and joining
-        */ 
     })
     return Group
 }
