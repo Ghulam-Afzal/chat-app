@@ -8,16 +8,10 @@ const USER = db.user
 // routes for creating, joining, leaving and deleting a group
 
 // get req to retrieve the channels that the user is apart of 
-groupRouter.get("/getGroups", async (req, res) => {
-
-    // get info needed from req.body 
-    const Id = req.body.groupId
+groupRouter.post("/getGroups", async (req, res) => {
 
     // obtain groups where id = group id and return them 
     const groups = await GROUP.findAll({
-        where: {
-            groupId: Id
-        }, 
         include : [
             {
                 model: db.user, 
@@ -25,7 +19,6 @@ groupRouter.get("/getGroups", async (req, res) => {
             }
         ]
     })
-
     res.json(groups)
 })
 
@@ -114,8 +107,6 @@ groupRouter.put("/joinGroup", async (req, res) => {
     })
 
     await usr.addGroup(group.id)
-
-
     await group.reload()
 
     res.json(group)
@@ -161,7 +152,6 @@ groupRouter.put("/leaveGroup", async (req, res) => {
     })
 
     await usr.removeGroup(group.id)
-
     await group.reload()
 
     res.json(group)
