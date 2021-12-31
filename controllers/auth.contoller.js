@@ -69,4 +69,22 @@ userRouter.post("/signin", async (req, res) => {
 })
 
 
+userRouter.post("/getUser", async (req, res) => {
+    const userId = req.body.userId
+
+    const user = await USER.findOne({
+        where: {
+            id: userId
+        },
+        include: [
+            {
+                model: db.group,
+            }
+        ], 
+        attributes: ["id", "username"]
+    })
+
+    res.json(user)
+})
+
 module.exports = userRouter
