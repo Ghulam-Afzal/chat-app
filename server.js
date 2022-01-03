@@ -9,12 +9,13 @@ const io = require('socket.io')(server, {
   }
 })
 
+// app.set("socketio", io)
+
 const middleware = require("./middleware/middleware");
 const db = require('./models')
 const messageRouter = require('./controllers/message.controller')
 const groupRouter = require('./controllers/group.controller')
 const userRouter = require("./controllers/auth.contoller")
-const MESSAGE = db.message
 
 db.sequelize.sync().then(()=> {
   console.log('Drop and resync Table')
@@ -41,12 +42,22 @@ app.use(middleware.errorHandler);
 io.on('connection', (socket) => {
   console.log(`A new peer has connected on socket ${socket}`)
 
+  socket.on("join-room", (room) => {
+    socket.join(room)
+    console.log(socket.rooms)
+  })
+
+  socket.on("leave-room", (room) => {
+    socket.leave(room)
+    console.log(socket.rooms)
+  })
+
   socket.on('disconnect', (socket) => {
     console.log('A user has disconnected')
   })
 
   socket.on('message-send', (message) => {
-    console.log(message)
+    console.log(`this is socket emit ${message}`)
   })
 
 })
