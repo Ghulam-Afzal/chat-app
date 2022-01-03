@@ -15,10 +15,27 @@ messageRouter.post("/getMessages", async (req, res) => {
             model: db.group, 
             attributes: [ "id", "name", "groupId"]
         }],
+        // limit: 10, 
+        order: [["createdAt", "ASC"]]
     })
 
     const groupMessages = messages.filter(groupMessage => groupId === groupMessage.dataValues.groupId)
     res.json(groupMessages)
+})
+
+messageRouter.post("/newMessage", async (req, res) => {
+    const author = req.body.authorId
+    const message = req.body.message
+    const groupId = req.body.groupId
+
+    const msg = Messages.build({
+        message: message, 
+        groupId: groupId,
+        userId: author
+  
+      })
+      await msg.save()
+      res.json(msg)
 })
 
 

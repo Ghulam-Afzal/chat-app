@@ -47,11 +47,6 @@ io.on('connection', (socket) => {
 
   socket.on('message-send', (message) => {
     console.log(message)
-    MESSAGE.create({
-      userId: message.authorId, 
-      message: message.msg, 
-      groupId: message.groupId
-    })
   })
 
 })
