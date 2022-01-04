@@ -57,6 +57,7 @@ io.on('connection', (socket) => {
 
   socket.on('message-send', (message) => {
     console.log(`this is socket emit ${message}`)
+    socket.broadcast.emit("s-message", message)
   })
 
 })
