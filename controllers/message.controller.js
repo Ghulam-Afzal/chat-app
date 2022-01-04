@@ -28,14 +28,28 @@ messageRouter.post("/newMessage", async (req, res) => {
     const message = req.body.message
     const groupId = req.body.groupId
 
-    const msg = Messages.build({
+    const newMsg = Messages.build({
         message: message, 
         groupId: groupId,
         userId: author
   
       })
-      await msg.save()
-      res.json(msg)
+      await newMsg.save()
+      
+      const _newMsg = await Messages.findOne({
+          where: {
+            id : newMsg.id
+          },
+          include: [{ 
+              model: db.user, 
+              attributes: [ "id", "username" ] 
+            },
+            { 
+                model: db.group, 
+                attributes: [ "id", "name", "groupId"]
+            }]
+      })
+      res.json(_newMsg)
 })
 
 
