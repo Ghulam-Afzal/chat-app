@@ -41,16 +41,6 @@ app.use(middleware.errorHandler);
 io.on('connection', (socket) => {
   console.log(`A new peer has connected on socket ${socket}`)
 
-  socket.on("join-room", (room) => {
-    socket.join(room)
-    console.log(socket.rooms)
-  })
-
-  socket.on("leave-room", (room) => {
-    socket.leave(room)
-    console.log(socket.rooms)
-  })
-
   socket.on('disconnect', (socket) => {
     console.log('A user has disconnected')
   })
