@@ -9,7 +9,6 @@ const io = require('socket.io')(server, {
   }
 })
 
-// app.set("socketio", io)
 
 const middleware = require("./middleware/middleware");
 const db = require('./models')
