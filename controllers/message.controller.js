@@ -1,10 +1,20 @@
 const messageRouter = require('express').Router() 
 const db = require('../models')
 const Messages = db.message
+const jwt = require('jsonwebtoken')
+const authConfig = require('../config/auth.config')
+const getTokenFrom = require("../middleware/auth.middleware")
 
 // returns all messages sent in a group
 messageRouter.post("/getMessages", async (req, res) => {
     const groupId = req.body.groupId
+
+    const token = getTokenFrom.getTokenFrom(req);
+    const decodedToken = jwt.verify(token, authConfig.SECRET);
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: "token is missing or is invalid" });
+    }
 
     const messages = await Messages.findAll({
         include: [ { 
@@ -27,6 +37,13 @@ messageRouter.post("/newMessage", async (req, res) => {
     const author = req.body.authorId
     const message = req.body.message
     const groupId = req.body.groupId
+
+    const token = getTokenFrom.getTokenFrom(req);
+    const decodedToken = jwt.verify(token, authConfig.SECRET);
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: "token is missing or is invalid" });
+    }
 
     const newMsg = Messages.build({
         message: message, 

@@ -1,6 +1,8 @@
 const groupRouter = require('express').Router() 
-const { hash } = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken')
+const authConfig = require('../config/auth.config')
+const getTokenFrom = require("../middleware/auth.middleware")
 const db = require('../models')
 const GROUP = db.group
 const USER = db.user
@@ -10,7 +12,7 @@ const USER = db.user
 // get req to retrieve the channels that the user is apart of 
 groupRouter.post("/getGroups", async (req, res) => {
 
-    // obtain groups where id = group id and return them 
+    // obtain groups 
     const groups = await GROUP.findAll({
         include : [
             {
@@ -30,6 +32,13 @@ groupRouter.post("/createGroup", async (req, res) => {
     const owner = req.body.owner
     const groupName = req.body.groupName
     const userId = req.body.userId
+
+    const token = getTokenFrom.getTokenFrom(req);
+    const decodedToken = jwt.verify(token, authConfig.SECRET);
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: "token is missing or is invalid" });
+    }
 
     let groupID = uuidv4()
 
@@ -73,6 +82,13 @@ groupRouter.put("/joinGroup", async (req, res) => {
     // get user and group id from req.body 
     const userId = req.body.userId
     const Id = req.body.id
+
+    const token = getTokenFrom.getTokenFrom(req);
+    const decodedToken = jwt.verify(token, authConfig.SECRET);
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: "token is missing or is invalid" });
+    }
 
     // add user to and increase count of members that are in the group
     const group = await GROUP.findOne({
@@ -119,6 +135,13 @@ groupRouter.put("/leaveGroup", async (req, res) => {
     const userId = req.body.userId
     const Id = req.body.id
 
+    const token = getTokenFrom.getTokenFrom(req);
+    const decodedToken = jwt.verify(token, authConfig.SECRET);
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: "token is missing or is invalid" });
+    }
+
     // remove user from and reduce count of members that are in the group
     const group = await GROUP.findOne({
         where: {
@@ -161,6 +184,14 @@ groupRouter.put("/leaveGroup", async (req, res) => {
 groupRouter.delete("/deleteGroup", async (req, res) => {
     const ownerOfGroup = req.body.owner
     const groupid = req.body.groupId
+    
+
+    const token = getTokenFrom.getTokenFrom(req);
+    const decodedToken = jwt.verify(token, authConfig.SECRET);
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: "token is missing or is invalid" });
+    }
     
     const group = await GROUP.findOne({
         where: {

@@ -2,6 +2,8 @@ const userRouter = require('express').Router()
 const bcryptjs = require("bcryptjs")
 const jwt = require('jsonwebtoken')
 const authConfig = require('../config/auth.config')
+const getTokenFrom = require("../middleware/auth.middleware")
+
 
 db = require("../models")
 const USER = db.user
@@ -71,6 +73,13 @@ userRouter.post("/signin", async (req, res) => {
 
 userRouter.post("/getUser", async (req, res) => {
     const userId = req.body.userId
+
+    const token = getTokenFrom.getTokenFrom(req);
+    const decodedToken = jwt.verify(token, authConfig.SECRET);
+
+    if (!token || !decodedToken.id) {
+        return res.status(401).json({ error: "token is missing or is invalid" });
+    }
 
     const user = await USER.findOne({
         where: {
