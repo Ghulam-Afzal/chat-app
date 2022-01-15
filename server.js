@@ -5,7 +5,7 @@ const app = express()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {
   cors:{
-    origin: '*'
+    origin: 'http://localhost:3000'
   }
 })
 
@@ -21,8 +21,9 @@ db.sequelize.sync().then(()=> {
 })
 
 app.use(cors({
-  origin: '*'
+  origin: 'http://localhost:3000'
 }))
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(middleware.requestLogger);
@@ -30,12 +31,6 @@ app.use(middleware.requestLogger);
 app.use("/api/messages", messageRouter)
 app.use("/api/groups", groupRouter)
 app.use("/api/auth", userRouter)
-app.use('/', (req, res) => {
-  res.json( {message: 'Welcome to the chat app.'})
-})
-
-app.use(middleware.unknownEndpoint);
-app.use(middleware.errorHandler);
 
 // wait for connection requests over the socket 
 io.on('connection', (socket) => {
@@ -51,6 +46,11 @@ io.on('connection', (socket) => {
   })
 
 })
+
+
+app.use(middleware.unknownEndpoint);
+app.use(middleware.errorHandler);
+
 
 // define port number and have server listen on it
 const PORT = 8080 || process.env.PORT
