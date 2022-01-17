@@ -5,7 +5,7 @@ const app = express()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {
   cors:{
-    origin: 'http://localhost:3000'
+    origin: ['http://localhost:3000', 'http://localhost:8080']
   }
 })
 
@@ -21,9 +21,11 @@ db.sequelize.sync().then(()=> {
 })
 
 app.use(cors({
-  origin: 'http://localhost:3000'
+  origin: ['http://localhost:3000', 'http://localhost:8080']
 }))
 
+
+// app.use(express.static("build"))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(middleware.requestLogger);
